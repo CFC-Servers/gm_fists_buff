@@ -37,7 +37,7 @@ local handBones = {
     ["ValveBiped.Anim_Attachment_RH"] = true,
 }
 
-local head = {
+local headBones = {
     ["ValveBiped.Bip01_Head1"] = true,
     ["ValveBiped.Bip01_Neck1"] = true,
     ["ValveBiped.Bip01_Spine"] = true,

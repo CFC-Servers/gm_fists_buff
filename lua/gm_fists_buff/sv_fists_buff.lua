@@ -1,5 +1,3 @@
-local ones = Vector( 1, 1, 1 )
-
 local knockoutTemplates = {
     "#A knocked out #T!",
     "#A knocked #T out!",
@@ -14,6 +12,8 @@ local handBones = bones.hands
 
 local function syncBoneScale( subject, ply )
     local boneCount = subject:GetBoneCount()
+    local ones = Vector( 1, 1, 1 )
+
     for i = 1, boneCount do
         local current = ply:GetManipulateBoneScale( i )
 
@@ -25,14 +25,11 @@ end
 
 local function resetBones( ply )
     local boneCount = ply:GetBoneCount()
-    for i = 1, boneCount do
-        if ply:GetManipulateBoneScale( i ) ~= ones then
-            ply:ManipulateBoneScale( i, ones )
-        end
+    local ones = Vector( 1, 1, 1 )
 
-        if ply:GetManipulateBoneJiggle( i ) ~= 0 then
-            ply:ManipulateBoneJiggle( i, 0 )
-        end
+    for i = 1, boneCount do
+        ply:ManipulateBoneScale( i, ones )
+        ply:ManipulateBoneJiggle( i, 0 )
     end
 end
 
@@ -150,7 +147,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
         local currentScale = ent:GetManipulateBoneScale( closestBone )
 
         local factor = 0.5
-        local modified = currentScale * ( ones - hitNormal * factor )
+        local modified = currentScale * ( Vector( 1, 1, 1 ) - hitNormal * factor )
         ent:ManipulateBoneScale( closestBone, modified )
 
         tryBreakBone( closestBone, ent )
