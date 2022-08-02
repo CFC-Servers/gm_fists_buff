@@ -35,7 +35,13 @@ end
 
 hook.Add( "PostPlayerDeath", "CFC_BonePunch_PlayerSpawn", function( ply )
     -- TODO: Make sure we only undo the bones we changed
+    ply.resetBones = true
+end )
+
+hook.Add( "PlayerSpawn", "CFC_BonePunch_ResetBones", function( ply )
+    if not ply.resetBones then return end
     resetBones( ply )
+    ply.resetBones = nil
 end )
 
 local function chance( percent )
@@ -68,7 +74,7 @@ local function tryKnockout( ply, attacker )
 end
 
 local function tryBreakBone( bone, ply )
-    if chance( 20 ) then
+    if chance( 33 ) then
         ply:ManipulateBoneJiggle( bone, 1 )
 
         ply:EmitSound( "physics/body/body_medium_break" .. math.random( 2, 4 ) .. ".wav", 130, 100, 1, CHAN_STATIC )
