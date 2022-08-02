@@ -1,2 +1,2 @@
-# cfc_repo_template
-CFC's template repository
+# gm_fists_buff
+Buffs the fists
