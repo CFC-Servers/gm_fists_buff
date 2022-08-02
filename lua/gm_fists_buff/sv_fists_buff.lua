@@ -2,10 +2,9 @@ local ones = Vector( 1, 1, 1 )
 
 local knockoutTemplates = {
     "#A knocked out #T!",
-    "#T was knocked out by #A!",
     "#A knocked #T out!",
     "#A knocked #T out cold!",
-    "#T got knocked out by #A!"
+    "#A K/O'd #T!"
 }
 
 local ragdoll = include( "ragdoll.lua" )
