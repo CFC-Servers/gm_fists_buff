@@ -11,10 +11,10 @@ local isHead = bones.head
 local handBones = bones.hands
 
 local function syncBoneScale( subject, ply )
-    local boneCount = subject:GetBoneCount()
+    local boneCount = subject:GetBoneCount() - 1
     local ones = Vector( 1, 1, 1 )
 
-    for i = 1, boneCount do
+    for i = 0, boneCount do
         local current = ply:GetManipulateBoneScale( i )
 
         if current ~= ones then
@@ -24,10 +24,10 @@ local function syncBoneScale( subject, ply )
 end
 
 local function resetBones( ply )
-    local boneCount = ply:GetBoneCount()
+    local boneCount = ply:GetBoneCount() - 1
     local ones = Vector( 1, 1, 1 )
 
-    for i = 1, boneCount do
+    for i = 0, boneCount do
         ply:ManipulateBoneScale( i, ones )
         ply:ManipulateBoneJiggle( i, 0 )
     end
@@ -48,8 +48,22 @@ local function chance( percent )
     return math.Rand( 0, 100 ) <= percent
 end
 
+local function absVector( vec )
+    local x = math.abs( vec.x )
+    local y = math.abs( vec.y )
+    local z = math.abs( vec.z )
+    return Vector( x, y, z )
+end
+
+local function clampVector( vec )
+    local x = math.max( 0, vec.x )
+    local y = math.max( 0, vec.y )
+    local z = math.max( 0, vec.z )
+    return Vector( x, y, z )
+end
+
 local function tryKnockout( ply, attacker )
-    if chance( 5 ) then
+    if chance( 15 ) then
         ragdollPlayer( ply )
 
         local messageTemplate = table.Random( knockoutTemplates )
@@ -77,9 +91,9 @@ local function tryBreakBone( bone, ply )
     if chance( 33 ) then
         ply:ManipulateBoneJiggle( bone, 1 )
 
-        ply:EmitSound( "physics/body/body_medium_break" .. math.random( 2, 4 ) .. ".wav", 130, 100, 1, CHAN_STATIC )
+        ply:EmitSound( "physics/body/body_medium_break" .. math.random( 2, 4 ) .. ".wav", 90, 100, 1, CHAN_STATIC )
         timer.Simple( 0.5, function()
-            ply:EmitSound( "vo/npc/male01/pain0" .. math.random( 7, 9 ) .. ".wav", 130, 100, 1, CHAN_STATIC )
+            ply:EmitSound( "vo/npc/male01/pain0" .. math.random( 7, 9 ) .. ".wav", 90, 100, 1, CHAN_STATIC )
         end )
     end
 end
@@ -151,11 +165,9 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
         local hitNormal = tr.HitNormal
 
         local currentScale = ent:GetManipulateBoneScale( closestBone )
+        local modified = clampVector( currentScale - absVector( hitNormal * 0.25 ) )
 
-        local factor = 0.5
-        local modified = currentScale * ( Vector( 1, 1, 1 ) - hitNormal * factor )
         ent:ManipulateBoneScale( closestBone, modified )
-
         tryBreakBone( closestBone, ent )
     end )
 end )
