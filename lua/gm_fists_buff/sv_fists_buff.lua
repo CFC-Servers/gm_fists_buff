@@ -115,7 +115,9 @@ hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo
     local inflictor = dmginfo:GetInflictor()
     if inflictor:GetClass() == "weapon_fists" then
         dmginfo:ScaleDamage( 1.85 )
-        dmginfo:SetDamageForce( dmginfo:GetDamageForce() * 15 )
+
+        local force = dmginfo:GetDamageForce() + Vector( 0, 0, 500 )
+        dmginfo:SetDamageForce( force * 15 )
     end
 
     local ragdolledPly = ent.ragdolledPly
@@ -141,7 +143,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     local inflictor = dmg:GetInflictor()
     if inflictor:GetClass() ~= "weapon_fists" then return end
 
-    local tr = util.TraceLine({
+    local tr = ( util.LegacyTraceLine or util.TraceLine )({
         start = attacker:EyePos(),
         endpos = attacker:EyePos() + attacker:GetAimVector() * 1000,
         collisiongroup = COLLISION_GROUP_PLAYER,
