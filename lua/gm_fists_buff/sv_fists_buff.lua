@@ -126,6 +126,8 @@ hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo
     local attacker = dmginfo:GetAttacker()
     if not attacker:IsPlayer() then return end
 
+    if not ragdolledPly.ragdolledHealth then return end
+
     ragdolledPly.ragdolledHealth = ragdolledPly.ragdolledHealth - dmginfo:GetDamage()
     if ragdolledPly.ragdolledHealth <= 0 then
         ragdolledPly.ragdolledHealth = nil
