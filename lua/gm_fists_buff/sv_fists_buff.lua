@@ -64,7 +64,7 @@ end
 
 local function tryKnockout( ply, attacker )
     if chance( 15 ) then
-        ragdollPlayer( ply )
+        ragdoll.ragdoll( ply )
 
         local messageTemplate = table.Random( knockoutTemplates )
         ulx.fancyLogAdmin( attacker, messageTemplate, { ply } )
@@ -78,7 +78,7 @@ local function tryKnockout( ply, attacker )
 
         timer.Simple( 5, function()
             if not ply.ragdoll then return end
-            unragdollPlayer( ply )
+            ragdoll.unragdoll( ply )
             timer.Simple( 0, function()
                 ply:SetHealth( ply.ragdolledHealth )
                 ply.ragdolledHealth = nil
@@ -131,7 +131,7 @@ hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo
     ragdolledPly.ragdolledHealth = ragdolledPly.ragdolledHealth - dmginfo:GetDamage()
     if ragdolledPly.ragdolledHealth <= 0 then
         ragdolledPly.ragdolledHealth = nil
-        unragdollPlayer( ragdolledPly )
+        ragdoll.unragdoll( ragdolledPly )
         ragdolledPly:Kill()
     end
 end )
