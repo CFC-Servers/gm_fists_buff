@@ -115,6 +115,7 @@ hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo
     local inflictor = dmginfo:GetInflictor()
     if inflictor:GetClass() == "weapon_fists" then
         dmginfo:ScaleDamage( 1.85 )
+        dmginfo:AddDamage( 8 )
 
         local force = dmginfo:GetDamageForce() + Vector( 0, 0, 500 )
         dmginfo:SetDamageForce( force * 15 )
