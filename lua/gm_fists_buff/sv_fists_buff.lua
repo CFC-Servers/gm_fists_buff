@@ -121,24 +121,17 @@ hook.Add( "PlayerCanPickupWeapon", "CFC_BonePunch_CanPickupDisarmed", function( 
     end
 end )
 
-hook.Add( "ScalePlayerDamage", "CFC_BonePunch_ScaleDamage", function( _, _, dmginfo )
-    local inflictor = dmginfo:GetInflictor()
-    if inflictor:GetClass() ~= "weapon_fists" then return end
-
-    scaleFistsDamage( dmginfo )
-end )
-
 hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo )
+    local inflictor = dmginfo:GetInflictor()
+    if inflictor:GetClass() == "weapon_fists" then
+        scaleFistsDamage( dmginfo )
+    end
+
     local ragdolledPly = ent.ragdolledPly
     if not ragdolledPly then return end
 
     local attacker = dmginfo:GetAttacker()
     if not attacker:IsPlayer() then return end
-
-    local inflictor = dmginfo:GetInflictor()
-    if inflictor:GetClass() == "weapon_fists" then
-        scaleFistsDamage( dmginfo )
-    end
 
     if not ragdolledPly.ragdolledHealth then return end
 
