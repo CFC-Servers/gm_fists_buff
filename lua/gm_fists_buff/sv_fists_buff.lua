@@ -72,8 +72,8 @@ local function tryKnockout( ply, attacker )
         ply.ragdolledHealth = ply:Health()
 
         timer.Simple( 0, function()
-            local ragdoll = ply.ragdoll
-            syncBoneScale( ragdoll, ply )
+            local plyRagdoll = ply.ragdoll
+            syncBoneScale( plyRagdoll, ply )
         end )
 
         timer.Simple( 5, function()
@@ -92,7 +92,9 @@ local function tryBreakBone( bone, ply )
         ply:ManipulateBoneJiggle( bone, 1 )
 
         ply:EmitSound( "physics/body/body_medium_break" .. math.random( 2, 4 ) .. ".wav", 90, 100, 1, CHAN_STATIC )
-        timer.Simple( 0.5, function()
+
+        local delay = math.Rand( 0.35, 0.7 )
+        timer.Simple( delay, function()
             ply:EmitSound( "vo/npc/male01/pain0" .. math.random( 7, 9 ) .. ".wav", 90, 100, 1, CHAN_STATIC )
         end )
     end
@@ -105,27 +107,38 @@ local function tryDisarm( ply )
     end
 end
 
-hook.Add( "PlayerCanPickupWeapon", "CFC_BonePunch_CanPickupDisarmed", function( ply, wep )
+local function scaleFistsDamage( dmginfo )
+    dmginfo:ScaleDamage( 1.85 )
+    dmginfo:AddDamage( 8 )
+
+    local force = dmginfo:GetDamageForce() + Vector( 0, 0, 500 )
+    dmginfo:SetDamageForce( force * 15 )
+end
+
+hook.Add( "PlayerCanPickupWeapon", "CFC_BonePunch_CanPickupDisarmed", function( ply )
     if ply.DisarmedAt and ply.DisarmedAt > CurTime() - 1 then
         return false
     end
 end )
 
-hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo )
+hook.Add( "ScalePlayerDamage", "CFC_BonePunch_ScaleDamage", function( _, _, dmginfo )
     local inflictor = dmginfo:GetInflictor()
-    if inflictor:GetClass() == "weapon_fists" then
-        dmginfo:ScaleDamage( 1.85 )
-        dmginfo:AddDamage( 8 )
+    if inflictor:GetClass() ~= "weapon_fists" then return end
 
-        local force = dmginfo:GetDamageForce() + Vector( 0, 0, 500 )
-        dmginfo:SetDamageForce( force * 15 )
-    end
+    scaleFistsDamage( dmginfo )
+end )
 
+hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo )
     local ragdolledPly = ent.ragdolledPly
     if not ragdolledPly then return end
 
     local attacker = dmginfo:GetAttacker()
     if not attacker:IsPlayer() then return end
+
+    local inflictor = dmginfo:GetInflictor()
+    if inflictor:GetClass() == "weapon_fists" then
+        scaleFistsDamage( dmginfo )
+    end
 
     if not ragdolledPly.ragdolledHealth then return end
 
@@ -146,6 +159,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     local inflictor = dmg:GetInflictor()
     if inflictor:GetClass() ~= "weapon_fists" then return end
 
+    -- ACF Compatability
     local tr = ( util.LegacyTraceLine or util.TraceLine )({
         start = attacker:EyePos(),
         endpos = attacker:EyePos() + attacker:GetAimVector() * 1000,
@@ -154,25 +168,21 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     })
 
     local closestBone = ent:TranslatePhysBoneToBone( tr.PhysicsBone )
-    local cloestBonePos = ent:GetBonePosition( closestBone )
+    local boneName = ent:GetBoneName( closestBone )
 
-    timer.Simple( 0, function()
-        local boneName = ent:GetBoneName( closestBone )
+    if isHead[boneName] then
+        tryKnockout( ent, attacker )
+    end
 
-        if isHead[boneName] then
-            tryKnockout( ent, attacker )
-        end
+    if handBones[boneName] then
+        tryDisarm( ent )
+    end
 
-        if handBones[boneName] then
-            tryDisarm( ent )
-        end
+    local hitNormal = tr.HitNormal
 
-        local hitNormal = tr.HitNormal
+    local currentScale = ent:GetManipulateBoneScale( closestBone )
+    local modified = clampVector( currentScale - absVector( hitNormal * 0.25 ) )
 
-        local currentScale = ent:GetManipulateBoneScale( closestBone )
-        local modified = clampVector( currentScale - absVector( hitNormal * 0.25 ) )
-
-        ent:ManipulateBoneScale( closestBone, modified )
-        tryBreakBone( closestBone, ent )
-    end )
+    ent:ManipulateBoneScale( closestBone, modified )
+    tryBreakBone( closestBone, ent )
 end )
