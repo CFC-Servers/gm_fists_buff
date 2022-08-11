@@ -88,20 +88,29 @@ local function tryKnockout( ply, attacker )
 end
 
 local function tryBreakBone( bone, ply )
-    if chance( 33 ) then
+    if chance( 75 ) then
         ply:ManipulateBoneJiggle( bone, 1 )
 
-        ply:EmitSound( "physics/body/body_medium_break" .. math.random( 2, 4 ) .. ".wav", 90, 100, 1, CHAN_STATIC )
+        local breakPitch = math.random( 95, 105 )
+        ply:EmitSound( "physics/body/body_medium_break" .. math.random( 2, 4 ) .. ".wav", 90, breakPitch, 1, CHAN_STATIC )
 
         local delay = math.Rand( 0.35, 0.7 )
         timer.Simple( delay, function()
-            ply:EmitSound( "vo/npc/male01/pain0" .. math.random( 7, 9 ) .. ".wav", 90, 100, 1, CHAN_STATIC )
+            local screamPitch = math.random( 95, 105 )
+            ply:EmitSound( "vo/npc/male01/pain0" .. math.random( 7, 9 ) .. ".wav", 90, screamPitch, 1, CHAN_STATIC )
         end )
     end
 end
 
 local function tryDisarm( ply )
     if chance( 75 ) then
+        local activeWeapon = ply:GetActiveWeapon()
+        if not IsValid( activeWeapon ) then return end
+
+        if activeWeapon:GetClass() == "weapon_fists" then
+            return
+        end
+
         ply:DropWeapon()
         ply.DisarmedAt = CurTime()
     end
@@ -109,9 +118,9 @@ end
 
 local function scaleFistsDamage( dmginfo )
     dmginfo:ScaleDamage( 1.85 )
-    dmginfo:AddDamage( 8 )
+    dmginfo:AddDamage( 12 )
 
-    local force = dmginfo:GetDamageForce() + Vector( 0, 0, 500 )
+    local force = dmginfo:GetDamageForce() + Vector( 0, 0, 650 )
     dmginfo:SetDamageForce( force * 15 )
 end
 
@@ -136,10 +145,13 @@ hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo
     if not ragdolledPly.ragdolledHealth then return end
 
     ragdolledPly.ragdolledHealth = ragdolledPly.ragdolledHealth - dmginfo:GetDamage()
+
     if ragdolledPly.ragdolledHealth <= 0 then
         ragdolledPly.ragdolledHealth = nil
         ragdoll.unragdoll( ragdolledPly )
-        ragdolledPly:Kill()
+
+        ragdolledPly:SetHealth( 0 )
+        ragdolledPly:TakeDamageInfo( dmginfo )
     end
 end )
 
@@ -147,20 +159,22 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     if not took then return end
     if not ent:IsValid() then return end
     if not ent:IsPlayer() then return end
+    if not ent:Alive() then return end
 
     local attacker = dmg:GetAttacker()
     local inflictor = dmg:GetInflictor()
     if inflictor:GetClass() ~= "weapon_fists" then return end
 
     -- ACF Compatability
+    local eyePos = attacker:EyePos()
+    local disp = attacker:GetEyeTrace().Normal
+
     local tr = ( util.LegacyTraceLine or util.TraceLine )({
-        start = attacker:EyePos(),
-        endpos = attacker:EyePos() + attacker:GetAimVector() * 1000,
-        collisiongroup = COLLISION_GROUP_PLAYER,
-        mask = MASK_SHOT_HULL
+        start = eyePos + disp * 10,
+        endpos = eyePos + disp * 750,
     })
 
-    local closestBone = ent:TranslatePhysBoneToBone( tr.PhysicsBone )
+    local closestBone = ent:GetHitBoxBone( tr.HitBox, 0 )
     local boneName = ent:GetBoneName( closestBone )
 
     if isHead[boneName] then
@@ -174,7 +188,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     local hitNormal = tr.HitNormal
 
     local currentScale = ent:GetManipulateBoneScale( closestBone )
-    local modified = clampVector( currentScale - absVector( hitNormal * 0.25 ) )
+    local modified = clampVector( currentScale - absVector( hitNormal * 0.3 ) )
 
     ent:ManipulateBoneScale( closestBone, modified )
     tryBreakBone( closestBone, ent )
