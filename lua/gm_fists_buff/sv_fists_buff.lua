@@ -102,6 +102,13 @@ end
 
 local function tryDisarm( ply )
     if chance( 75 ) then
+        local activeWeapon = ply:GetActiveWeapon()
+        if not IsValid( activeWeapon ) then return end
+
+        if activeWeapon:GetClass() == "weapon_fists" then
+            return
+        end
+
         ply:DropWeapon()
         ply.DisarmedAt = CurTime()
     end
@@ -109,9 +116,9 @@ end
 
 local function scaleFistsDamage( dmginfo )
     dmginfo:ScaleDamage( 1.85 )
-    dmginfo:AddDamage( 8 )
+    dmginfo:AddDamage( 12 )
 
-    local force = dmginfo:GetDamageForce() + Vector( 0, 0, 500 )
+    local force = dmginfo:GetDamageForce() + Vector( 0, 0, 650 )
     dmginfo:SetDamageForce( force * 15 )
 end
 
@@ -136,10 +143,13 @@ hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo
     if not ragdolledPly.ragdolledHealth then return end
 
     ragdolledPly.ragdolledHealth = ragdolledPly.ragdolledHealth - dmginfo:GetDamage()
+
     if ragdolledPly.ragdolledHealth <= 0 then
         ragdolledPly.ragdolledHealth = nil
         ragdoll.unragdoll( ragdolledPly )
-        ragdolledPly:Kill()
+
+        ragdolledPly:SetHealth( 0 )
+        ragdolledPly:TakeDamageInfo( dmginfo )
     end
 end )
 
@@ -147,6 +157,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     if not took then return end
     if not ent:IsValid() then return end
     if not ent:IsPlayer() then return end
+    if not ent:Alive() then return end
 
     local attacker = dmg:GetAttacker()
     local inflictor = dmg:GetInflictor()
@@ -174,7 +185,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     local hitNormal = tr.HitNormal
 
     local currentScale = ent:GetManipulateBoneScale( closestBone )
-    local modified = clampVector( currentScale - absVector( hitNormal * 0.25 ) )
+    local modified = clampVector( currentScale - absVector( hitNormal * 0.3 ) )
 
     ent:ManipulateBoneScale( closestBone, modified )
     tryBreakBone( closestBone, ent )
