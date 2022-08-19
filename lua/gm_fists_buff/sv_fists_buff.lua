@@ -63,7 +63,7 @@ local function clampVector( vec )
 end
 
 local function tryKnockout( ply, attacker )
-    if chance( 15 ) then
+    if chance( 10 ) then
         ragdoll.ragdoll( ply )
 
         local messageTemplate = table.Random( knockoutTemplates )
