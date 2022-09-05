@@ -175,6 +175,7 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     })
 
     local closestBone = ent:GetHitBoxBone( tr.HitBox, 0 )
+    if not closestBone then return end
     local boneName = ent:GetBoneName( closestBone )
 
     if isHead[boneName] then
