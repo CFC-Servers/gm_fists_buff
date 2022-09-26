@@ -169,10 +169,10 @@ hook.Add( "PostEntityTakeDamage", "CFC_BonePunch", function( ent, dmg, took )
     local eyePos = attacker:EyePos()
     local disp = attacker:GetEyeTrace().Normal
 
-    local tr = ( util.LegacyTraceLine or util.TraceLine )({
+    local tr = ( util.LegacyTraceLine or util.TraceLine )( {
         start = eyePos + disp * 10,
         endpos = eyePos + disp * 750,
-    })
+    } )
 
     local closestBone = ent:GetHitBoxBone( tr.HitBox, 0 )
     if not closestBone then return end
