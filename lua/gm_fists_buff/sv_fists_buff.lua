@@ -1,3 +1,5 @@
+local IsValid = IsValid
+
 local knockoutTemplates = {
     "#A knocked out #T!",
     "#A knocked #T out!",
@@ -132,6 +134,7 @@ end )
 
 hook.Add( "EntityTakeDamage", "CFC_BonePunch_TakeDamage", function( ent, dmginfo )
     local inflictor = dmginfo:GetInflictor()
+    if not IsValid( inflictor) then return end
     if inflictor:GetClass() == "weapon_fists" then
         scaleFistsDamage( dmginfo )
     end
