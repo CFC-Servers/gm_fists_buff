@@ -64,8 +64,22 @@ local function clampVector( vec )
     return Vector( x, y, z )
 end
 
+local function calculateKnockOutChance( ply )
+    local baseChance = 10
+    local fullSpeedVelocity = 2200 -- At what velocity length will the chance be 100%
+
+    local maxVelocity = ply:GetVelocity():Length()
+    local normalizedVelocity = maxVelocity / fullSpeedVelocity
+
+    local chanceIncrease = math.min( normalizedVelocity, 1 ) * 100
+
+    return baseChance + chanceIncrease
+end
+
 local function tryKnockout( ply, attacker )
-    if chance( 10 ) then
+    local koChance = calculateKnockOutChance( ply )
+
+    if chance( koChance ) then
         ragdoll.ragdoll( ply )
 
         local messageTemplate = table.Random( knockoutTemplates )
