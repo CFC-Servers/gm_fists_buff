@@ -75,6 +75,7 @@ local function tryKnockout( ply, attacker )
 
         timer.Simple( 0, function()
             local plyRagdoll = ply.ragdoll
+            if not IsValid( plyRagdoll ) then return end
             syncBoneScale( plyRagdoll, ply )
         end )
 
